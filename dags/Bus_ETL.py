@@ -7,10 +7,10 @@ from airflow.operators.python_operator import PythonOperator, BranchPythonOperat
 from airflow.operators.email_operator import EmailOperator
 import pandas as pd
 
-# Constants
-POSTGRES_CONN_ID = 'Rain_TEST'  # Replace with your Postgres connection ID in Airflow
 
-# Fetch bus data function
+POSTGRES_CONN_ID = 'Rain_TEST'  # Postgres connection id in airflow
+
+# Collect bus data function
 def fetch_bus_data(ti):
     url = "https://tdx.transportdata.tw/api/basic/v2/Bus/RealTimeNearStop/City/Taipei/617?%24top=30&%24format=JSON"
     headers = {
@@ -28,18 +28,23 @@ def fetch_bus_data(ti):
 # Branch function
 def check_status_code(ti):
     status_code = ti.xcom_pull(key='status_code', task_ids='fetch_bus_data')
+    raw_bus_data = ti.xcom_pull(key='raw_bus_data', task_ids='fetch_bus_data')
     if status_code == 200:
+        for bus in raw_bus_data:
+            if not all([bus.get("PlateNumb"), bus["RouteName"].get("Zh_tw"), bus.get("Direction"),      #Check if any of the value is empty.
+                    bus["StopName"].get("Zh_tw"), bus.get("StopSequence"), bus.get("GPSTime")]):
+                return 'send_email_alert'
         return 'transform_bus_data'
     else:
         return 'send_email_alert'
 
 # Send email alert function
-def send_email_alert():
-    subject = "Bus Data Fetching Failed - Status Code 401"
-    body = "The bus data fetching failed due to unauthorized access. Please update the API token."
+def send_email_alert(**kwargs):
+    subject = f"{kwargs['dags'].dag_id} --- Bus Data Fetching Failed."
+    body = "The bus data fetching failed due to unauthorized access. Please update the API token or check data missing."
     email = EmailOperator(
         task_id='send_email_alert',
-        to='your_email@example.com',
+        to='raydue38@gmail.com',
         subject=subject,
         html_content=body
     )
