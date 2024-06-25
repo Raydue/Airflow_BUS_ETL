@@ -3,12 +3,14 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.providers.postgres.operators.postgres import PostgresOperator
-from airflow.operators.python_operator import PythonOperator
+from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
+from airflow.operators.email_operator import EmailOperator
 import pandas as pd
 
 # Constants
 POSTGRES_CONN_ID = 'Rain_TEST'  # Replace with your Postgres connection ID in Airflow
 
+# Fetch bus data function
 def fetch_bus_data(ti):
     url = "https://tdx.transportdata.tw/api/basic/v2/Bus/RealTimeNearStop/City/Taipei/617?%24top=30&%24format=JSON"
     headers = {
@@ -16,15 +18,34 @@ def fetch_bus_data(ti):
         'Authorization': 'Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJER2lKNFE5bFg4WldFajlNNEE2amFVNm9JOGJVQ3RYWGV6OFdZVzh3ZkhrIn0.eyJleHAiOjE3MTkzMDA3MjAsImlhdCI6MTcxOTIxNDMyMCwianRpIjoiMWQyNjI5MWItMWY0NC00MTJjLTg5MjktNzIwNTgzMjZhMDU5IiwiaXNzIjoiaHR0cHM6Ly90ZHgudHJhbnNwb3J0ZGF0YS50dy9hdXRoL3JlYWxtcy9URFhDb25uZWN0Iiwic3ViIjoiNjZkYmQyYzgtM2YyMS00ODIxLWI3MWItNGI0MzIzYzhlYTMxIiwidHlwIjoiQmVhcmVyIiwiYXpwIjoicmF5ZHVlMzgtMDAzYTc5MjMtNzRjYS00ZWNiIiwiYWNyIjoiMSIsInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJzdGF0aXN0aWMiLCJwcmVtaXVtIiwicGFya2luZ0ZlZSIsIm1hYXMiLCJhZHZhbmNlZCIsImdlb2luZm8iLCJ2YWxpZGF0b3IiLCJ0b3VyaXNtIiwiaGlzdG9yaWNhbCIsImJhc2ljIl19LCJzY29wZSI6InByb2ZpbGUgZW1haWwiLCJ1c2VyIjoiOGE4ZGI2YzAifQ.dq5oWY6SBtRjZRcxpss3AX9WfErzdyRwcjuTD8N4EryZnRD2FkZNbiea5bFG0BDVJsBaHT1HgSwtYOM3jELCNcimcTswcvLuhufDQCaM2HHnifFYxY1vjKxZRVlb2IJc-8oucMfsCGGAowb-H3cqF4yJpjzt6sIfpg3Z8Pe4vQJ2tZ1dEg0z5-yVzEWrrTa6LGZW4iOkiNDhI0Cb16aB2H1g9IMydDsSM5476NwJISG6ozM-nVt7wraLOiRcRdy68p3RaQkNQlLOBSe911cJYRdMuj0tU4vReDBhnpwWF35-oZFLxBoiPPXQ6onrxZSGlvN0fgAnI7dH5w-hXSdiEQ'
     }
     response = requests.get(url, headers=headers)
+    ti.xcom_push(key='status_code', value=response.status_code)
     if response.status_code == 200:
         data = response.json()
         ti.xcom_push(key='raw_bus_data', value=data)
     else:
         print("Failed to fetch bus data. Status code:", response.status_code)
-        if response.status_code == 401:
-            print("please update the secret key.")
-        return []
 
+# Branch function
+def check_status_code(ti):
+    status_code = ti.xcom_pull(key='status_code', task_ids='fetch_bus_data')
+    if status_code == 200:
+        return 'transform_bus_data'
+    else:
+        return 'send_email_alert'
+
+# Send email alert function
+def send_email_alert():
+    subject = "Bus Data Fetching Failed - Status Code 401"
+    body = "The bus data fetching failed due to unauthorized access. Please update the API token."
+    email = EmailOperator(
+        task_id='send_email_alert',
+        to='your_email@example.com',
+        subject=subject,
+        html_content=body
+    )
+    email.execute(context={})
+
+# Transform bus data function
 def transform_bus_data(ti):
     raw_bus_data = ti.xcom_pull(key='raw_bus_data', task_ids='fetch_bus_data')
     if raw_bus_data:
@@ -49,6 +70,7 @@ def transform_bus_data(ti):
     else:
         print("Error: No raw bus data available for transformation")
 
+# Insert data to db function
 def insert_data_to_db(ti):
     transformed_data = ti.xcom_pull(key='transformed_data', task_ids='transform_bus_data')
     if transformed_data:
@@ -75,6 +97,7 @@ def insert_data_to_db(ti):
     else:
         print("Error: No transformed data available for insertion")
 
+# Read db function
 def read_db():
     hook = PostgresHook(postgres_conn_id=POSTGRES_CONN_ID)
     conn = hook.get_conn()
@@ -105,9 +128,20 @@ with DAG(
         python_callable=fetch_bus_data,
     )
 
+    check_status_code_task = BranchPythonOperator(
+        task_id='check_status_code',
+        python_callable=check_status_code,
+        provide_context=True
+    )
+
     transform_bus_data_task = PythonOperator(
         task_id='transform_bus_data',
         python_callable=transform_bus_data,
+    )
+
+    send_email_alert_task = PythonOperator(
+        task_id='send_email_alert',
+        python_callable=send_email_alert,
     )
 
     create_table_task = PostgresOperator(
@@ -136,4 +170,6 @@ with DAG(
         python_callable=read_db,
     )
 
-    fetch_bus_data_task >> transform_bus_data_task >> create_table_task >> insert_data_task >> read_db_task
+    fetch_bus_data_task >> check_status_code_task
+    check_status_code_task >> transform_bus_data_task >> create_table_task >> insert_data_task >> read_db_task
+    check_status_code_task >> send_email_alert_task
