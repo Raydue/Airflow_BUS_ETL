@@ -40,7 +40,7 @@ def check_status_code(ti):
 
 # Send email alert function
 def send_email_alert(**kwargs):
-    subject = f"{kwargs['dags'].dag_id} --- Bus Data Fetching Failed."
+    subject = f"{kwargs['dag'].dag_id} --- Bus Data Fetching Failed."
     body = "The bus data fetching failed due to unauthorized access. Please update the API token or check data missing."
     email = EmailOperator(
         task_id='send_email_alert',
