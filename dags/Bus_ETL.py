@@ -15,7 +15,7 @@ def fetch_bus_data(ti):
     url = "https://tdx.transportdata.tw/api/basic/v2/Bus/RealTimeNearStop/City/Taipei/617?%24top=30&%24format=JSON"
     headers = {
         'accept': 'application/json',
-        'Authorization': 'Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJER2lKNFE5bFg4WldFajlNNEE2amFVNm9JOGJVQ3RYWGV6OFdZVzh3ZkhrIn0.eyJleHAiOjE3MTkzMDA3MjAsImlhdCI6MTcxOTIxNDMyMCwianRpIjoiMWQyNjI5MWItMWY0NC00MTJjLTg5MjktNzIwNTgzMjZhMDU5IiwiaXNzIjoiaHR0cHM6Ly90ZHgudHJhbnNwb3J0ZGF0YS50dy9hdXRoL3JlYWxtcy9URFhDb25uZWN0Iiwic3ViIjoiNjZkYmQyYzgtM2YyMS00ODIxLWI3MWItNGI0MzIzYzhlYTMxIiwidHlwIjoiQmVhcmVyIiwiYXpwIjoicmF5ZHVlMzgtMDAzYTc5MjMtNzRjYS00ZWNiIiwiYWNyIjoiMSIsInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJzdGF0aXN0aWMiLCJwcmVtaXVtIiwicGFya2luZ0ZlZSIsIm1hYXMiLCJhZHZhbmNlZCIsImdlb2luZm8iLCJ2YWxpZGF0b3IiLCJ0b3VyaXNtIiwiaGlzdG9yaWNhbCIsImJhc2ljIl19LCJzY29wZSI6InByb2ZpbGUgZW1haWwiLCJ1c2VyIjoiOGE4ZGI2YzAifQ.dq5oWY6SBtRjZRcxpss3AX9WfErzdyRwcjuTD8N4EryZnRD2FkZNbiea5bFG0BDVJsBaHT1HgSwtYOM3jELCNcimcTswcvLuhufDQCaM2HHnifFYxY1vjKxZRVlb2IJc-8oucMfsCGGAowb-H3cqF4yJpjzt6sIfpg3Z8Pe4vQJ2tZ1dEg0z5-yVzEWrrTa6LGZW4iOkiNDhI0Cb16aB2H1g9IMydDsSM5476NwJISG6ozM-nVt7wraLOiRcRdy68p3RaQkNQlLOBSe911cJYRdMuj0tU4vReDBhnpwWF35-oZFLxBoiPPXQ6onrxZSGlvN0fgAnI7dH5w-hXSdiEQ'
+        'Authorization': 'Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJER2lKNFE5bFg4WldFajlNNEE2amFVNm9JOGJVQ3RYWGV6OFdZVzh3ZkhrIn0.eyJleHAiOjE3MTk0ODkxNzcsImlhdCI6MTcxOTQwMjc3NywianRpIjoiMDQ3YjVhZWItNGVhNC00ZDNjLTk2NDktNzg0ODFjYjZhYjc3IiwiaXNzIjoiaHR0cHM6Ly90ZHgudHJhbnNwb3J0ZGF0YS50dy9hdXRoL3JlYWxtcy9URFhDb25uZWN0Iiwic3ViIjoiNjZkYmQyYzgtM2YyMS00ODIxLWI3MWItNGI0MzIzYzhlYTMxIiwidHlwIjoiQmVhcmVyIiwiYXpwIjoicmF5ZHVlMzgtMDAzYTc5MjMtNzRjYS00ZWNiIiwiYWNyIjoiMSIsInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJzdGF0aXN0aWMiLCJwcmVtaXVtIiwicGFya2luZ0ZlZSIsIm1hYXMiLCJhZHZhbmNlZCIsImdlb2luZm8iLCJ2YWxpZGF0b3IiLCJ0b3VyaXNtIiwiaGlzdG9yaWNhbCIsImJhc2ljIl19LCJzY29wZSI6InByb2ZpbGUgZW1haWwiLCJ1c2VyIjoiOGE4ZGI2YzAifQ.NzOXL2ulukiPa1HvoFTQa9rLCV6Qlo-nf8DtEYHRULvGqCHGkqOb73lpm3vRJZ-krJW9srv7gb_vi0taa-HFNVJR-IBu2v5ZCYX4sNPcOpF9J2CWIqw7FHHZt6so3DJ0soMjlJ_eix02axAfMnLnumlXUZpZPDuOM3StPl2eHI-1iskfGSGLBglbpM0i0wWzxKf5qKmIXR9lVMkLv3UzXsg21L4HLBmvEYhLmpXhMAltKPb0qgPB90ClZRezfHSc7wDl7Ewstzd2QpwgamjqW6wZC47uXe9ABpMnOszfchB07FnIcb9QAGX-kFgtj2K_iD60QjErJvJKR0_DymNyBw'
     }
     response = requests.get(url, headers=headers)
     ti.xcom_push(key='status_code', value=response.status_code)
@@ -115,7 +115,8 @@ def read_db():
 
 default_args = {
     'owner': 'Ray',
-    'start_date': datetime(2024, 6, 24),
+    'start_date': datetime(2024, 6, 26, 20, 0, 0),
+    'end_date' : datetime(2024, 6, 27, 20, 0, 0),
     'retries': 1,
     'retry_delay': timedelta(minutes=2),
 }
@@ -153,7 +154,7 @@ with DAG(
         task_id='create_table',
         postgres_conn_id=POSTGRES_CONN_ID,
         sql="""
-        CREATE TABLE IF NOT EXISTS bus_data (
+        CREATE TABLE IF NOT EXISTS bus_data_24h (
             PlateNumb VARCHAR(20),
             RouteName VARCHAR(255),
             Direction INTEGER,
