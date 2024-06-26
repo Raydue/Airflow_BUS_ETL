@@ -5,6 +5,7 @@ from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.providers.postgres.operators.postgres import PostgresOperator
 from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
 from airflow.operators.email_operator import EmailOperator
+from airflow.utils import timezone
 import pandas as pd
 
 
@@ -15,7 +16,7 @@ def fetch_bus_data(ti):
     url = "https://tdx.transportdata.tw/api/basic/v2/Bus/RealTimeNearStop/City/Taipei/617?%24top=30&%24format=JSON"
     headers = {
         'accept': 'application/json',
-        'Authorization': 'Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJER2lKNFE5bFg4WldFajlNNEE2amFVNm9JOGJVQ3RYWGV6OFdZVzh3ZkhrIn0.eyJleHAiOjE3MTk0ODkxNzcsImlhdCI6MTcxOTQwMjc3NywianRpIjoiMDQ3YjVhZWItNGVhNC00ZDNjLTk2NDktNzg0ODFjYjZhYjc3IiwiaXNzIjoiaHR0cHM6Ly90ZHgudHJhbnNwb3J0ZGF0YS50dy9hdXRoL3JlYWxtcy9URFhDb25uZWN0Iiwic3ViIjoiNjZkYmQyYzgtM2YyMS00ODIxLWI3MWItNGI0MzIzYzhlYTMxIiwidHlwIjoiQmVhcmVyIiwiYXpwIjoicmF5ZHVlMzgtMDAzYTc5MjMtNzRjYS00ZWNiIiwiYWNyIjoiMSIsInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJzdGF0aXN0aWMiLCJwcmVtaXVtIiwicGFya2luZ0ZlZSIsIm1hYXMiLCJhZHZhbmNlZCIsImdlb2luZm8iLCJ2YWxpZGF0b3IiLCJ0b3VyaXNtIiwiaGlzdG9yaWNhbCIsImJhc2ljIl19LCJzY29wZSI6InByb2ZpbGUgZW1haWwiLCJ1c2VyIjoiOGE4ZGI2YzAifQ.NzOXL2ulukiPa1HvoFTQa9rLCV6Qlo-nf8DtEYHRULvGqCHGkqOb73lpm3vRJZ-krJW9srv7gb_vi0taa-HFNVJR-IBu2v5ZCYX4sNPcOpF9J2CWIqw7FHHZt6so3DJ0soMjlJ_eix02axAfMnLnumlXUZpZPDuOM3StPl2eHI-1iskfGSGLBglbpM0i0wWzxKf5qKmIXR9lVMkLv3UzXsg21L4HLBmvEYhLmpXhMAltKPb0qgPB90ClZRezfHSc7wDl7Ewstzd2QpwgamjqW6wZC47uXe9ABpMnOszfchB07FnIcb9QAGX-kFgtj2K_iD60QjErJvJKR0_DymNyBw'
+        'Authorization': 'Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJER2lKNFE5bFg4WldFajlNNEE2amFVNm9JOGJVQ3RYWGV6OFdZVzh3ZkhrIn0.eyJleHAiOjE3MTk0OTIyNTMsImlhdCI6MTcxOTQwNTg1MywianRpIjoiMjY2OWJlMzUtODBlYi00Nzg2LTgzZjQtMTcyMGI1ZjI2N2IyIiwiaXNzIjoiaHR0cHM6Ly90ZHgudHJhbnNwb3J0ZGF0YS50dy9hdXRoL3JlYWxtcy9URFhDb25uZWN0Iiwic3ViIjoiNjZkYmQyYzgtM2YyMS00ODIxLWI3MWItNGI0MzIzYzhlYTMxIiwidHlwIjoiQmVhcmVyIiwiYXpwIjoicmF5ZHVlMzgtMDAzYTc5MjMtNzRjYS00ZWNiIiwiYWNyIjoiMSIsInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJzdGF0aXN0aWMiLCJwcmVtaXVtIiwicGFya2luZ0ZlZSIsIm1hYXMiLCJhZHZhbmNlZCIsImdlb2luZm8iLCJ2YWxpZGF0b3IiLCJ0b3VyaXNtIiwiaGlzdG9yaWNhbCIsImJhc2ljIl19LCJzY29wZSI6InByb2ZpbGUgZW1haWwiLCJ1c2VyIjoiOGE4ZGI2YzAifQ.WvGiGF_96BaTLKzDzxr5KTJZin4Cb-ARRKctJbgnnuE80_8LyyVb-z1SkPjb6pTcPoddzTI21HiQzkd0DnQFlLCgsdFis97zBFimRvRDgI2b6hqOY0h2IT6qpxPhEpPWIvurr6t693zOukyic_ZYPNjUco91Yk0zK3RpqOJuqHa-YioUzmE8g-1E1kori95LiVfJFvyx46feM5LD5eON_CyLoFLTjBQyPyi7HCmvhfbP4Rgq2B6e7_n_i1I5X0eDKDLYfD-q4NBfsvom7sgOXhLirZqE8Xc1zNm0UTeSMwIlI61mbeiFtnZ8J9nDuAVPCn4DsnjgKbxlJ0cHt2yG-A'
     }
     response = requests.get(url, headers=headers)
     ti.xcom_push(key='status_code', value=response.status_code)
@@ -30,9 +31,15 @@ def check_status_code(ti):
     status_code = ti.xcom_pull(key='status_code', task_ids='fetch_bus_data')
     raw_bus_data = ti.xcom_pull(key='raw_bus_data', task_ids='fetch_bus_data')
     if status_code == 200:
-        for bus in raw_bus_data:
-            if not all([bus.get("PlateNumb"), bus["RouteName"].get("Zh_tw"), bus.get("Direction"),      #Check if any of the value is empty.
-                    bus["StopName"].get("Zh_tw"), bus.get("StopSequence"), bus.get("GPSTime")]):
+        for bus in raw_bus_data:                    #Check each Bus.
+             if any(value is None for value in [    #check if any of the value == None.
+                bus.get("PlateNumb"), 
+                bus["RouteName"].get("Zh_tw"), 
+                bus.get("Direction"), 
+                bus["StopName"].get("Zh_tw"), 
+                bus.get("StopSequence"), 
+                bus.get("GPSTime")
+            ]):
                 return 'send_email_alert'
         return 'transform_bus_data'
     else:
@@ -83,7 +90,7 @@ def insert_data_to_db(ti):
         conn = hook.get_conn()
         cursor = conn.cursor()
         insert_query = """
-        INSERT INTO bus_data (PlateNumb, RouteName, Direction, StopName, StopSequence, GPSTime)
+        INSERT INTO bus_data_24h (PlateNumb, RouteName, Direction, StopName, StopSequence, GPSTime)
         VALUES (%s, %s, %s, %s, %s, %s)
         ON CONFLICT (PlateNumb, GPSTime) DO NOTHING;
         """
@@ -115,8 +122,8 @@ def read_db():
 
 default_args = {
     'owner': 'Ray',
-    'start_date': datetime(2024, 6, 26, 20, 0, 0),
-    'end_date' : datetime(2024, 6, 27, 20, 0, 0),
+    'start_date': timezone.datetime(2024, 6, 26, 13, 30, 0),
+    'end_date' : timezone.datetime(2024, 6, 27, 13, 30, 0),
     'retries': 1,
     'retry_delay': timedelta(minutes=2),
 }
