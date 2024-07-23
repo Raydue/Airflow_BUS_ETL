@@ -13,23 +13,23 @@ POSTGRES_CONN_ID = 'Rain_TEST'  # Postgres connection id in airflow
 
 # Collect bus data function
 def fetch_bus_data(ti):
-    url = "https://tdx.transportdata.tw/api/basic/v2/Bus/RealTimeNearStop/City/Taipei/617?%24top=30&%24format=JSON"
+    url = "https://tdx.transportdata.tw/api/basic/v2/Bus/RealTimeNearStop/City/Taipei/617?%24top=30&%24format=JSON"     #617公車
     headers = {
         'accept': 'application/json',
-        'Authorization': 'Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJER2lKNFE5bFg4WldFajlNNEE2amFVNm9JOGJVQ3RYWGV6OFdZVzh3ZkhrIn0.eyJleHAiOjE3MTk0OTIyNTMsImlhdCI6MTcxOTQwNTg1MywianRpIjoiMjY2OWJlMzUtODBlYi00Nzg2LTgzZjQtMTcyMGI1ZjI2N2IyIiwiaXNzIjoiaHR0cHM6Ly90ZHgudHJhbnNwb3J0ZGF0YS50dy9hdXRoL3JlYWxtcy9URFhDb25uZWN0Iiwic3ViIjoiNjZkYmQyYzgtM2YyMS00ODIxLWI3MWItNGI0MzIzYzhlYTMxIiwidHlwIjoiQmVhcmVyIiwiYXpwIjoicmF5ZHVlMzgtMDAzYTc5MjMtNzRjYS00ZWNiIiwiYWNyIjoiMSIsInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJzdGF0aXN0aWMiLCJwcmVtaXVtIiwicGFya2luZ0ZlZSIsIm1hYXMiLCJhZHZhbmNlZCIsImdlb2luZm8iLCJ2YWxpZGF0b3IiLCJ0b3VyaXNtIiwiaGlzdG9yaWNhbCIsImJhc2ljIl19LCJzY29wZSI6InByb2ZpbGUgZW1haWwiLCJ1c2VyIjoiOGE4ZGI2YzAifQ.WvGiGF_96BaTLKzDzxr5KTJZin4Cb-ARRKctJbgnnuE80_8LyyVb-z1SkPjb6pTcPoddzTI21HiQzkd0DnQFlLCgsdFis97zBFimRvRDgI2b6hqOY0h2IT6qpxPhEpPWIvurr6t693zOukyic_ZYPNjUco91Yk0zK3RpqOJuqHa-YioUzmE8g-1E1kori95LiVfJFvyx46feM5LD5eON_CyLoFLTjBQyPyi7HCmvhfbP4Rgq2B6e7_n_i1I5X0eDKDLYfD-q4NBfsvom7sgOXhLirZqE8Xc1zNm0UTeSMwIlI61mbeiFtnZ8J9nDuAVPCn4DsnjgKbxlJ0cHt2yG-A'
+        'Authorization': 'Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJER2lKNFE5bFg4WldFajlNNEE2amFVNm9JOGJVQ3RYWGV6OFdZVzh3ZkhrIn0.eyJleHAiOjE3MTk4MTk3NTAsImlhdCI6MTcxOTczMzM1MCwianRpIjoiMWUwMTljNWEtMGMxYS00NzkxLTg2N2EtMDZhZTUyNjI4YWQxIiwiaXNzIjoiaHR0cHM6Ly90ZHgudHJhbnNwb3J0ZGF0YS50dy9hdXRoL3JlYWxtcy9URFhDb25uZWN0Iiwic3ViIjoiNjZkYmQyYzgtM2YyMS00ODIxLWI3MWItNGI0MzIzYzhlYTMxIiwidHlwIjoiQmVhcmVyIiwiYXpwIjoicmF5ZHVlMzgtMDAzYTc5MjMtNzRjYS00ZWNiIiwiYWNyIjoiMSIsInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJzdGF0aXN0aWMiLCJwcmVtaXVtIiwicGFya2luZ0ZlZSIsIm1hYXMiLCJhZHZhbmNlZCIsImdlb2luZm8iLCJ2YWxpZGF0b3IiLCJ0b3VyaXNtIiwiaGlzdG9yaWNhbCIsImJhc2ljIl19LCJzY29wZSI6InByb2ZpbGUgZW1haWwiLCJ1c2VyIjoiOGE4ZGI2YzAifQ.G_eVH_rPbBWe3-PYMnZnmB-2_88ilk958fw_4juPPQMOFOmtdNsresyVodI74GpiTGjOsAz-h6cZXInsqMoAUoRBz_FCLfUCnqZA1h1lNRXZ3Q73WwE4uzStDYG4lwMQW-E3wquxXbtGEPRzVC_yH4oBv6p6PlxwibH3oKXRqT_jBuvjV0Mc1EoVOGZydSWcY4wQ2SCZo-dYyHa_RHYtF5zFkwutm6Kp4a9Cez6L_GhcwwjiUIhsoBgQfWG-YTfvDid0soWpBYW0mtjAx7mQDMb1cy9BLfpi3HbMKqtw6YLiqK8XRppsqxB2fz793LXayoQ9cuNwRryLk3tU6Gzssg'
     }
     response = requests.get(url, headers=headers)
     ti.xcom_push(key='status_code', value=response.status_code)
     if response.status_code == 200:
         data = response.json()
-        ti.xcom_push(key='raw_bus_data', value=data)
+        ti.xcom_push(key='raw_bus_data', value=data)    #將抓來的資料放上xcom 以便資料的傳輸
     else:
         print("Failed to fetch bus data. Status code:", response.status_code)
 
 # Branch function
 def check_status_code(ti):
-    status_code = ti.xcom_pull(key='status_code', task_ids='fetch_bus_data')
-    raw_bus_data = ti.xcom_pull(key='raw_bus_data', task_ids='fetch_bus_data')
+    status_code = ti.xcom_pull(key='status_code', task_ids='fetch_bus_data')    
+    raw_bus_data = ti.xcom_pull(key='raw_bus_data', task_ids='fetch_bus_data')  #將xcom上key name為raw_bus_data 的value抓下來
     if status_code == 200:
         for bus in raw_bus_data:                    #Check each Bus.
              if any(value is None for value in [    #check if any of the value == None.
@@ -40,10 +40,10 @@ def check_status_code(ti):
                 bus.get("StopSequence"), 
                 bus.get("GPSTime")
             ]):
-                return 'send_email_alert'
-        return 'transform_bus_data'
+                return 'send_email_alert'           #資料有缺失，寄 email 提醒
+        return 'transform_bus_data'                 #沒有問題，進到下一階段transform_bus_data
     else:
-        return 'send_email_alert'
+        return 'send_email_alert'                   #secret key 過期，寄email提醒
 
 # Send email alert function
 def send_email_alert(**kwargs):
@@ -62,7 +62,7 @@ def transform_bus_data(ti):
     raw_bus_data = ti.xcom_pull(key='raw_bus_data', task_ids='fetch_bus_data')
     if raw_bus_data:
         extracted_data = []
-        for bus in raw_bus_data:
+        for bus in raw_bus_data:        #將每一台公車的json資料重構並摘出需要的欄位資料。
             relevant_info = {
                 "PlateNumb": bus.get("PlateNumb"),
                 "RouteName": bus["RouteName"].get("Zh_tw"),
@@ -77,14 +77,14 @@ def transform_bus_data(ti):
         df['GPSTime'] = pd.to_datetime(df['GPSTime'])
         df['GPSTime'] = df['GPSTime'].astype(str)  # Convert timestamps to strings
         transformed_data_list = df.to_dict(orient='records')
-        ti.xcom_push(key='transformed_data', value=transformed_data_list)
+        ti.xcom_push(key='transformed_data', value=transformed_data_list)   #再把transformed data放入xcom 方便後續寫入資料庫。
         print("Transformed Data:", transformed_data_list)
     else:
         print("Error: No raw bus data available for transformation")
 
 # Insert data to db function
 def insert_data_to_db(ti):
-    transformed_data = ti.xcom_pull(key='transformed_data', task_ids='transform_bus_data')
+    transformed_data = ti.xcom_pull(key='transformed_data', task_ids='transform_bus_data')  
     if transformed_data:
         hook = PostgresHook(postgres_conn_id=POSTGRES_CONN_ID)
         conn = hook.get_conn()
@@ -182,7 +182,7 @@ with DAG(
         task_id='read_db',
         python_callable=read_db,
     )
-
+    #Schedule the sequence of the workflow.
     fetch_bus_data_task >> check_status_code_task
     check_status_code_task >> transform_bus_data_task >> create_table_task >> insert_data_task >> read_db_task
     check_status_code_task >> send_email_alert_task
